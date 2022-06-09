@@ -30,7 +30,7 @@ io.on("connection", (socket) => {
       .to(room)
       .emit(
         "send message from server to client",
-        createMessage(`${username} Vừa Tham Gia Vào Phòng ${room}`,"Admin")
+        createMessage(`${username} Vừa Tham Gia Vào Phòng ${room}`, "Admin")
       );
 
     // chat
@@ -56,7 +56,12 @@ io.on("connection", (socket) => {
       "send location from client to server",
       ({ latitude, longitude }) => {
         const linkLocation = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        io.to(room).emit("send location from server to client", linkLocation);
+        const id = socket.id;
+        const user = findUser(id);
+        io.to(room).emit(
+          "send location from server to client",
+          createMessage(linkLocation, user.username)
+        );
       }
     );
 

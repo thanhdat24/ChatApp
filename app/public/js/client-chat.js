@@ -17,18 +17,18 @@ document.getElementById("form-messages").addEventListener("submit", (e) => {
 });
 
 socket.on("send message from server to client", (message) => {
-  console.log("message: ", message);
+  const { username, messagesText, createAt } = message;
   // hiện thị lên màn hình
   const content = $("#app__messages").html();
   const messageEle = /*html*/ `
      <div class="message-item">
                     <div class="message__row1">
-                        <p class="message__name">${message.username}</p>
-                        <p class="message__date">${message.createAt}</p>
+                        <p class="message__name">${username}</p>
+                        <p class="message__date">${createAt}</p>
                     </div>
                     <div class="message__row2">
                         <p class="message__content">
-                            ${message.messagesText}
+                            ${messagesText}
                         </p>
                     </div>
                 </div>
@@ -41,20 +41,38 @@ socket.on("send message from server to client", (message) => {
 });
 
 // gửi vị trí
-// document.getElementById("btn-location").addEventListener("click", (e) => {
-//   e.preventDefault();
-//   if (!navigator.geolocation) {
-//     return alert("Trình duyệt không hỗ trợ vị trí!");
-//   }
-//   navigator.geolocation.getCurrentPosition((position) => {
-//     const { latitude, longitude } = position.coords;
-//     socket.emit("send location from client to server", { latitude, longitude });
-//     console.log("position: ", position);
-//   });
-// });
+document.getElementById("btn-share-location").addEventListener("click", (e) => {
+  e.preventDefault();
+  if (!navigator.geolocation) {
+    return alert("Trình duyệt không hỗ trợ vị trí!");
+  }
+  navigator.geolocation.getCurrentPosition((position) => {
+    const { latitude, longitude } = position.coords;
+    socket.emit("send location from client to server", { latitude, longitude });
+  });
+});
 
-socket.on("send location from server to client", (linkLocation) => {
-  console.log("linkLocation: ", linkLocation);
+socket.on("send location from server to client", (data) => {
+  const { username, messagesText, createAt } = data;
+  console.log("data", data);
+
+  const content = $("#app__messages").html();
+  const messageEle = /*html*/ `
+     <div class="message-item">
+                    <div class="message__row1">
+                        <p class="message__name">${username}</p>
+                        <p class="message__date">${createAt}</p>
+                    </div>
+                    <div class="message__row2">
+                        <p class="message__content">
+                        <a href="${messagesText}" target="_blank">Vị Trí Của ${username}</a>
+                            
+                        </p>
+                    </div>
+                </div>
+                `;
+  let contentRender = content + messageEle;
+  $("#app__messages").html(contentRender);
 });
 
 // Xử lí query string
