@@ -5,7 +5,7 @@ const http = require("http");
 const socketIo = require("socket.io");
 const Filter = require("bad-words");
 const { createMessage } = require("./utils/createMessages");
-const { getUserList, addUser, removeUser } = require("./utils/users");
+const { getUserList, addUser, removeUser, findUser } = require("./utils/users");
 app.use(express.static(path.join(__dirname, "../public")));
 
 const server = http.createServer(app);
@@ -22,7 +22,7 @@ io.on("connection", (socket) => {
     // gửi cho client kêt nối vào
     socket.emit(
       "send message from server to client",
-      `Chào Mừng Bạn Đến Với Phòng ${room}`
+      createMessage(`Chào Mừng Bạn Đến Với Phòng ${room}`, "Admin")
     );
 
     // gửi cho các client còn lại
@@ -30,7 +30,7 @@ io.on("connection", (socket) => {
       .to(room)
       .emit(
         "send message from server to client",
-        `${username} Vừa Tham Gia Vào Phòng ${room}`
+        createMessage(`${username} Vừa Tham Gia Vào Phòng ${room}`,"Admin")
       );
 
     // chat
@@ -41,9 +41,12 @@ io.on("connection", (socket) => {
         return callback("messageTest không hợp lệ!");
       }
 
+      const id = socket.id;
+      const user = findUser(id);
+
       io.to(room).emit(
         "send message from server to client",
-        createMessage(messageTest)
+        createMessage(messageTest, user.username)
       );
       callback();
     });
@@ -75,7 +78,7 @@ io.on("connection", (socket) => {
         .to(room)
         .emit(
           "send message from server to client",
-          `${username} Vừa Rời Khỏi Phòng ${room}`
+          createMessage(`${username} Vừa Rời Khỏi Phòng ${room}`, username)
         );
       io.to(room).emit(
         "send user list from server to client",
@@ -84,8 +87,6 @@ io.on("connection", (socket) => {
       console.log("Client disconnected");
     });
   });
-
-
 });
 
 // lắng nghe event kết nối
